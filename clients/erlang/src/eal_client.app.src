@@ -1,0 +1,7 @@
+{application, eal_client, [
+  {description, "Erlang endpoint helpers for Embedded Alerts"},
+  {vsn, "0.1.0"},
+  {modules, []},
+  {registered, []},
+  {applications, [kernel, stdlib]}
+]}.
