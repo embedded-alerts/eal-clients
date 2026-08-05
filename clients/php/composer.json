@@ -1,0 +1,14 @@
+{
+  "name": "embedded-alerts/eal-client",
+  "description": "Embedded Alerts PHP client",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "EmbeddedAlerts\\": "src/"
+    }
+  }
+}

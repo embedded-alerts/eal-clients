@@ -1,0 +1,11 @@
+{
+  "name": "@embedded-alerts/eal-client-bun",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src"
+  ]
+}
