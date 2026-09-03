@@ -1,0 +1,10 @@
+{
+  "apiSurface": "clients/api-surface.json",
+  "apiSurfaceSha256": "f68275d70242e6fc510ce7b64fecbcb9c167b3580196e6c8be52c4b9c9e7a78d",
+  "coordinate": "embedded-alerts/eal-clients",
+  "runtime": "kotlin",
+  "schemaId": "https://zpkg.tech/schemas/client-api.schema.json",
+  "schemaVersion": 1,
+  "target": "kotlin",
+  "zedTarget": "kotlin"
+}
