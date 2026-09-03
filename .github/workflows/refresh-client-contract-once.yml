@@ -1,6 +1,7 @@
 name: refresh-client-contract-once
 
 on:
+  workflow_dispatch:
   push:
     branches: ["feat/use-lib-core-validation-v1-20260903"]
     paths: [".github/workflows/refresh-client-contract-once.yml"]
