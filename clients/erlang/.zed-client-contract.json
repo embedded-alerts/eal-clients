@@ -1,6 +1,6 @@
 {
   "apiSurface": "clients/api-surface.json",
-  "apiSurfaceSha256": "91222431f791a0f166e7eebc2ab29dea4baae10f70086c5380fae4361230f5a4",
+  "apiSurfaceSha256": "f68275d70242e6fc510ce7b64fecbcb9c167b3580196e6c8be52c4b9c9e7a78d",
   "coordinate": "embedded-alerts/eal-clients",
   "runtime": "erlang",
   "schemaId": "https://zpkg.tech/schemas/client-api.schema.json",
