@@ -136,9 +136,11 @@ def marker_root(directory: Path, runtime: str) -> Path:
 def implementation_evidence(directory: Path) -> tuple[int, str]:
     records: list[dict[str, str]] = []
     for path in directory.rglob("*"):
+        relative = path.relative_to(directory)
+        normalized_parts = frozenset(part.casefold() for part in relative.parts)
         if (
             path.is_file()
-            and not IGNORED_PARTS.intersection(path.relative_to(directory).parts)
+            and IGNORED_PARTS.isdisjoint(normalized_parts)
             and (
                 path.suffix.lower() in SOURCE_SUFFIXES
                 or path.name in METADATA_NAMES
@@ -147,7 +149,7 @@ def implementation_evidence(directory: Path) -> tuple[int, str]:
         ):
             records.append(
                 {
-                    "path": path.relative_to(directory).as_posix(),
+                    "path": relative.as_posix(),
                     "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                 }
             )
