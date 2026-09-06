@@ -19,6 +19,7 @@ env
 **/.netrc
 **/.cargo/credentials
 **/.cargo/credentials.toml
+**/.dockerconfigjson
 **/node_modules
 **/vendor
 **/target
@@ -30,6 +31,8 @@ env
 **/.pytest_cache
 **/.mypy_cache
 **/.ruff_cache
+**/__pycache__
+**/*.pyc
 **/coverage
 **/build
 **/dist
