@@ -1,0 +1,13 @@
+{
+  "apiSurfaceSha256": "f68275d70242e6fc510ce7b64fecbcb9c167b3580196e6c8be52c4b9c9e7a78d",
+  "changed": [
+    "/Users/maca5/codes/.claude-fleet/scratch/merge/embedded-alerts_eal-clients__12/clients/contract-manifest.json"
+  ],
+  "errors": [],
+  "minimumTargets": 15,
+  "mode": "write",
+  "prefix": "eal",
+  "repository": "embedded-alerts/eal-clients",
+  "schemaVersion": 1,
+  "standardTargets": 20
+}
