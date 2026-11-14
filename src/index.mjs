@@ -6,12 +6,22 @@ export const product = Object.freeze({
   capabilities: ['health', 'config', 'events', 'leads', 'alerts'],
 });
 
+// Only HTTP delta-seconds are supported: date-form Retry-After values are
+// deliberately ignored until the caller supplies a clock for safe evaluation.
+// Exposing the bounded hint does not cause automatic request replay.
+export function parseRetryAfterSeconds(value) {
+  if (typeof value !== 'string' || !/^\\d+$/.test(value.trim())) return null;
+  const seconds = Number(value.trim());
+  return Number.isSafeInteger(seconds) ? Math.min(seconds, 3600) : null;
+}
+
 export class ApiError extends Error {
-  constructor(message, { status, body } = {}) {
+  constructor(message, { status, body, retryAfterSeconds = null } = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.body = body;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -41,7 +51,7 @@ export class ServiceClient {
     const res = await this.fetch(`${this.baseUrl}${path}`, init);
     const text = await res.text();
     const parsed = text ? JSON.parse(text) : null;
-    if (!res.ok) throw new ApiError(`Request failed: ${res.status}`, { status: res.status, body: parsed });
+    if (!res.ok) throw new ApiError(`Request failed: ${res.status}`, { status: res.status, body: parsed, retryAfterSeconds: parseRetryAfterSeconds(res.headers.get('retry-after')) });
     return parsed;
   }
 }
