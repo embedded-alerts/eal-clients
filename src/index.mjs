@@ -10,9 +10,16 @@ export const product = Object.freeze({
 // deliberately ignored until the caller supplies a clock for safe evaluation.
 // Exposing the bounded hint does not cause automatic request replay.
 export function parseRetryAfterSeconds(value) {
-  if (typeof value !== 'string' || !/^\d+$/.test(value.trim())) return null;
-  const seconds = Number(value.trim());
-  return Number.isSafeInteger(seconds) ? Math.min(seconds, 3600) : null;
+  if (typeof value !== 'string') return null;
+  const raw = value.trim();
+  if (!/^\d+$/.test(raw)) return null;
+  // Rust's contract parses u64 values exactly, then caps the policy delay.
+  // BigInt prevents rounding and a false rejection above MAX_SAFE_INTEGER.
+  const digits = raw.replace(/^0+(?=\d)/, '');
+  if (digits.length > 20) return null;
+  const seconds = BigInt(digits);
+  if (seconds > 18446744073709551615n) return null;
+  return Number(seconds > 3600n ? 3600n : seconds);
 }
 
 export class ApiError extends Error {
@@ -37,7 +44,8 @@ export class ServiceClient {
     }
     if (!['http:', 'https:'].includes(parsedBase.protocol) ||
         !parsedBase.hostname || parsedBase.username || parsedBase.password ||
-        parsedBase.search || parsedBase.hash) {
+        parsedBase.search || parsedBase.hash ||
+        parsedBase.href.includes('?') || parsedBase.href.includes('#')) {
       throw new TypeError('baseUrl must use HTTP(S) with no credentials, query or fragment');
     }
     this.baseUrl = parsedBase.toString().replace(/\/$/, '');
