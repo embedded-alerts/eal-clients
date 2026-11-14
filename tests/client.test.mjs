@@ -50,3 +50,61 @@ test('429 errors expose retry delay without automatically retrying POST', async 
   });
   assert.equal(calls, 1);
 });
+
+test('client validates base URLs before dispatch', async () => {
+  for (const invalid of [
+    'file:///tmp/config',
+    'javascript:alert(1)',
+    '/relative',
+    'https://user:secret@example.test',
+    'https://example.test/api?token=secret',
+    'https://example.test/api#fragment',
+  ]) {
+    assert.throws(() => createClient({ baseUrl: invalid }), TypeError);
+  }
+  const calls = [];
+  const client = createClient({
+    baseUrl: 'https://example.test/api/',
+    fetchImpl: async (url) => {
+      calls.push(url);
+      return new Response('{"ok":true}', { status: 200 });
+    },
+  });
+  await client.health();
+  assert.equal(calls[0], 'https://example.test/api/healthz');
+});
+
+test('non-JSON 429 preserves HTTP status and bounded Retry-After without replay', async () => {
+  let calls = 0;
+  const client = createClient({
+    baseUrl: 'https://edge.example.test',
+    fetchImpl: async () => {
+      calls++;
+      return new Response('Upstream temporarily unavailable', {
+        status: 429,
+        headers: { 'content-type': 'text/plain', 'retry-after': '7200' },
+      });
+    },
+  });
+  await assert.rejects(() => client.createAlert({ name: 'demo' }), (error) => {
+    assert(error instanceof ApiError);
+    assert.equal(error.status, 429);
+    assert.equal(error.body, null);
+    assert.equal(error.retryAfterSeconds, 3600);
+    return true;
+  });
+  assert.equal(calls, 1);
+});
+
+test('malformed JSON on a successful response yields a structured error', async () => {
+  const client = createClient({
+    baseUrl: 'https://edge.example.test',
+    fetchImpl: async () => new Response('not json', { status: 200 }),
+  });
+  await assert.rejects(() => client.health(), (error) => {
+    assert(error instanceof ApiError);
+    assert.equal(error.status, 200);
+    assert.equal(error.body, undefined);
+    return true;
+  });
+});
