@@ -25,7 +25,11 @@ test('client throws structured errors', async () => {
 test('retry-after delta-seconds are bounded and invalid hints ignored', () => {
   assert.equal(parseRetryAfterSeconds('12'), 12);
   assert.equal(parseRetryAfterSeconds(' 999999 '), 3600);
-  for (const invalid of [null, '-1', '1.5', '5s', 'Wed, 21 Oct 2015 07:28:00 GMT', '99999999999999999999999']) {
+  assert.equal(parseRetryAfterSeconds('0'), 0);
+  assert.equal(parseRetryAfterSeconds('9007199254740992'), 3600);
+  assert.equal(parseRetryAfterSeconds('18446744073709551615'), 3600);
+  assert.equal(parseRetryAfterSeconds('0000000000000000000000000001'), 1);
+  for (const invalid of [null, '-1', '1.5', '5s', 'Wed, 21 Oct 2015 07:28:00 GMT', '18446744073709551616', '99999999999999999999999']) {
     assert.equal(parseRetryAfterSeconds(invalid), null);
   }
 });
@@ -59,6 +63,8 @@ test('client validates base URLs before dispatch', async () => {
     'https://user:secret@example.test',
     'https://example.test/api?token=secret',
     'https://example.test/api#fragment',
+    'https://example.test/api?',
+    'https://example.test/api#',
   ]) {
     assert.throws(() => createClient({ baseUrl: invalid }), TypeError);
   }
