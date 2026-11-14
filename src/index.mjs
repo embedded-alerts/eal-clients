@@ -10,7 +10,7 @@ export const product = Object.freeze({
 // deliberately ignored until the caller supplies a clock for safe evaluation.
 // Exposing the bounded hint does not cause automatic request replay.
 export function parseRetryAfterSeconds(value) {
-  if (typeof value !== 'string' || !/^\\d+$/.test(value.trim())) return null;
+  if (typeof value !== 'string' || !/^\d+$/.test(value.trim())) return null;
   const seconds = Number(value.trim());
   return Number.isSafeInteger(seconds) ? Math.min(seconds, 3600) : null;
 }
