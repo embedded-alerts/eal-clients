@@ -27,9 +27,20 @@ export class ApiError extends Error {
 
 export class ServiceClient {
   constructor({ baseUrl, token, fetchImpl = globalThis.fetch } = {}) {
-    if (!baseUrl) throw new TypeError('baseUrl is required');
+    if (typeof baseUrl !== 'string' || !baseUrl) throw new TypeError('baseUrl is required');
     if (typeof fetchImpl !== 'function') throw new TypeError('fetch implementation is required');
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+    let parsedBase;
+    try {
+      parsedBase = new URL(baseUrl);
+    } catch {
+      throw new TypeError('baseUrl must be an absolute HTTP(S) URL');
+    }
+    if (!['http:', 'https:'].includes(parsedBase.protocol) ||
+        !parsedBase.hostname || parsedBase.username || parsedBase.password ||
+        parsedBase.search || parsedBase.hash) {
+      throw new TypeError('baseUrl must use HTTP(S) with no credentials, query or fragment');
+    }
+    this.baseUrl = parsedBase.toString().replace(/\/$/, '');
     this.token = token;
     this.fetch = fetchImpl;
   }
@@ -50,8 +61,24 @@ export class ServiceClient {
     }
     const res = await this.fetch(`${this.baseUrl}${path}`, init);
     const text = await res.text();
-    const parsed = text ? JSON.parse(text) : null;
-    if (!res.ok) throw new ApiError(`Request failed: ${res.status}`, { status: res.status, body: parsed, retryAfterSeconds: parseRetryAfterSeconds(res.headers.get('retry-after')) });
+    let parsed = null;
+    if (text) {
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        if (res.ok) {
+          throw new ApiError('Response body is not valid JSON', { status: res.status });
+        }
+        // Non-JSON 429/5xx bodies must not obscure the HTTP status or retry hint.
+      }
+    }
+    if (!res.ok) {
+      throw new ApiError(`Request failed: ${res.status}`, {
+        status: res.status,
+        body: parsed,
+        retryAfterSeconds: parseRetryAfterSeconds(res.headers.get('retry-after')),
+      });
+    }
     return parsed;
   }
 }
